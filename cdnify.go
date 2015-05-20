@@ -63,7 +63,7 @@ func (m *Cdnify) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.Han
 	// Set `Cache-Control` header.
 	if !m.isDev && strings.HasPrefix(r.URL.Path, m.prefix) {
 		w.Header().Set("Cache-Control",
-			fmt.Sprintf("public, max-age=%d, must-revalidate, proxy-revalidate",
+			fmt.Sprintf("public, max-age=%d",
 				int(m.ttl.Seconds())),
 		)
 	}
