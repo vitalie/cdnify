@@ -7,11 +7,22 @@ import (
 	"time"
 )
 
+const (
+	DefaultPrefix = "/assets/"
+)
+
 var (
 	DefaultTTL = 7 * 24 * time.Hour
 )
 
-// SetTTL configures TTL for Cdnify middleware.
+// SetPrefix configures the prefix.
+func SetPrefix(prefix string) func(*Cdnify) {
+	return func(m *Cdnify) {
+		m.prefix = prefix
+	}
+}
+
+// SetTTL configures TTL.
 func SetTTL(ttl time.Duration) func(*Cdnify) {
 	return func(m *Cdnify) {
 		m.ttl = ttl
@@ -27,14 +38,14 @@ type Cdnify struct {
 }
 
 // New returns a new middleware.
-func New(prefix string, isDev bool, opts ...func(*Cdnify)) *Cdnify {
+func New(isDev bool, opts ...func(*Cdnify)) *Cdnify {
 	m := &Cdnify{
-		prefix: prefix,
+		prefix: DefaultPrefix,
 		ttl:    DefaultTTL,
 		isDev:  isDev,
 	}
 
-	// Set options.
+	// Apply options.
 	for _, opt := range opts {
 		opt(m)
 	}
@@ -49,7 +60,7 @@ func (m *Cdnify) ServeHTTP(w http.ResponseWriter, r *http.Request, next http.Han
 		return
 	}
 
-	// Set Cache-Control header.
+	// Set `Cache-Control` header.
 	if !m.isDev && strings.HasPrefix(r.URL.Path, m.prefix) {
 		w.Header().Set("Cache-Control",
 			fmt.Sprintf("public, max-age=%d, must-revalidate, proxy-revalidate",
